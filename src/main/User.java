@@ -36,7 +36,7 @@ public class User {
     }
 
     private String getCurrentDate() {
-        SimpleDateFormat sdf = new SimpleDateFormat("E MMM dd HH:mm:ss z yyyy");
+        SimpleDateFormat sdf = new SimpleDateFormat("MMMM dd yyyy HH:mm:ss");
         return sdf.format(new Date());
     }
 

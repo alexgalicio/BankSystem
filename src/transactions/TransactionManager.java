@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
+import static com.diogonunes.jcolor.Ansi.colorize;
+import static com.diogonunes.jcolor.Attribute.TEXT_COLOR;
+import static util.Interface.*;
 import static util.TextFormatter.*;
 
 public class TransactionManager {
@@ -31,31 +34,31 @@ public class TransactionManager {
     }
 
     public void deposit(User user) {
-        printHeader("DEPOSIT");
-        double depositAmount = getUserAmount();
+        printTitle("                            Deposit                             ");
+        double depositAmount = getUserAmount("DEPOSIT");
 
         if (depositAmount < 100 || depositAmount > 50000) {
-            printError("Invalid amount. Deposit amount must be between 100 and 50,000.");
+            printError("\nInvalid amount. Deposit amount must be between 100 and 50,000.");
             return;
         }
         user.setBalance(user.getBalance() + depositAmount);
         Transaction depositTransaction = new Transaction("DEPOSIT", depositAmount, user.getUsername());
         transactions.add(depositTransaction);
-        printSuccess("Your deposit of " + formatAmount(depositAmount) + " has been processed successfully.");
+        printSuccess("\nYour deposit of " + formatAmount(depositAmount) + " has been processed successfully.");
         System.out.println("New balance: " + formatAmount(user.getBalance()));
     }
 
     public void withdraw(User user) {
-        printHeader("WITHDRAW");
-        double withdrawalAmount = getUserAmount();
+        printTitle("                            Withdraw                            ");
+        double withdrawalAmount = getUserAmount("WITHDRAWAL");
 
         if (withdrawalAmount < 100 || withdrawalAmount > 50000) {
-            printError("Invalid amount. Withdrawal amount must be between 100 and 50,000.");
+            printError("\nInvalid amount. Withdrawal amount must be between 100 and 50,000.");
             return;
         }
 
         if (withdrawalAmount > user.getBalance()) {
-            printError("Insufficient Balance.");
+            printError("\nInsufficient Balance.");
             return;
         }
 
@@ -64,20 +67,20 @@ public class TransactionManager {
         Transaction withdrawTransaction = new Transaction("WITHDRAWAL", withdrawalAmount, user.getUsername());
         transactions.add(withdrawTransaction);
 
-        printSuccess("Your deposit of " + formatAmount(withdrawalAmount) + " has been processed successfully.");
+        printSuccess("\nYour deposit of " + formatAmount(withdrawalAmount) + " has been processed successfully.");
         System.out.println("Remaining balance: " + formatAmount(user.getBalance()));
     }
 
     public void transfer(User sender, User receiver) {
         if (sender.getUsername().equals(receiver.getUsername())) {
-            printError("You can't transfer money to your own account.");
+            printError("\nYou can't transfer money to your own account.");
             return;
         }
 
-        double transferAmount = getUserAmount();
+        double transferAmount = getUserAmount("TRANSFER");
 
         if (transferAmount < 100 || transferAmount > sender.getBalance()) {
-            printError("Invalid transfer amount or insufficient balance.");
+            printError("\nInvalid transfer amount or insufficient balance.");
             return;
         }
 
@@ -90,51 +93,61 @@ public class TransactionManager {
         Transaction senderTransaction = new Transaction("TRANSFER OUT", -transferAmount, sender.getUsername());
         transactions.add(senderTransaction);
 
-        Transaction receiverTransaction = new Transaction("TRANSFER IN", transferAmountWithFee, receiver.getUsername());
+        Transaction receiverTransaction = new Transaction("TRANSFER IN ", transferAmountWithFee, receiver.getUsername());
         transactions.add(receiverTransaction);
 
-        printSuccess("Transfer of " + formatAmount(transferAmountWithFee) + " from " + sender.getUsername() + " to "
+        printSuccess("\nTransfer of " + formatAmount(transferAmountWithFee) + " from " + sender.getUsername() + " to "
                 + receiver.getUsername() + " was successful.");
         System.out.println("Transaction Fee (5%): " + formatAmount(fee));
         System.out.println("Remaining balance: " + formatAmount(sender.getBalance()));
     }
 
     public void exchangeCurrency(User user) {
-        printHeader("CURRENCIES");
+        printTitle("                        Exchange Currency                       ");
         for (int i = 0; i < currencies.length; i++) {
             printCurrency("[", (i + 1), "] ", currencies[i], " - ", exchangeRates[i]);
         }
 
-        System.out.print("Choose source currency: ");
-        int fromCurrencyIndex = scanner.nextInt() - 1;
+        int fromCurrencyIndex;
 
-        if (fromCurrencyIndex < 0 || fromCurrencyIndex >= currencies.length) {
-            printError("Invalid choice. Please choose a valid currency.");
-            return;
+        while (true) {
+            try {
+                System.out.print("\nChoose source currency: ");
+                fromCurrencyIndex = scanner.nextInt() - 1;
+
+                if (fromCurrencyIndex < 0 || fromCurrencyIndex >= currencies.length) {
+                    printError("\nInvalid choice. Please choose a valid currency.");
+                } else {
+                    double exchangeAmount = getUserAmount("EXCHANGE");
+
+                    if (exchangeAmount < 100 || exchangeAmount > 50000) {
+                        printError("\nInvalid amount. The transaction amount must be between 100 and 50,000.");
+                        pause();
+                        return;
+                    }
+
+                    double exchangedAmountInPesos = exchangeAmount * exchangeRates[fromCurrencyIndex];
+
+                    double fee = exchangedAmountInPesos * feePercentage;
+                    double exchangedAmountWithFee = exchangedAmountInPesos - fee;
+
+                    Transaction exchangeTransaction = new Transaction("EXCHANGE", exchangeAmount, user.getUsername());
+                    transactions.add(exchangeTransaction);
+
+                    printSuccess("\n" + formatAmount(exchangeAmount) + " " + currencies[fromCurrencyIndex] + " exchanged to "
+                            + formatAmount(exchangedAmountWithFee) + " Pesos.");
+                    System.out.println("Transaction Fee (5%): " + formatAmount(fee));
+                    break;
+                }
+            } catch (java.util.InputMismatchException e) {
+                scanner.nextLine();
+                printError("\nInvalid input. Please enter an integer.");
+            }
         }
-
-        double exchangeAmount = getUserAmount();
-
-        if (exchangeAmount < 100 || exchangeAmount > 50000) {
-            printError("Invalid amount. The transaction amount must be between 100 and 50,000.");
-            return;
-        }
-
-        double exchangedAmountInPesos = exchangeAmount * exchangeRates[fromCurrencyIndex];
-
-        double fee = exchangedAmountInPesos * feePercentage;
-        double exchangedAmountWithFee = exchangedAmountInPesos - fee;
-
-        Transaction exchangeTransaction = new Transaction("EXCHANGE", exchangeAmount, user.getUsername());
-        transactions.add(exchangeTransaction);
-
-        printSuccess(formatAmount(exchangeAmount) + " " + currencies[fromCurrencyIndex] + " exchanged to "
-                + formatAmount(exchangedAmountWithFee) + " Pesos.");
-        System.out.println("Transaction Fee (5%): " + formatAmount(fee));
     }
 
     public void payBills(User user) {
-        printHeader("BILL PAYMENT");
+        printTitle("                          Bill Payment                          ");
         print("[", "1", "] ", "Electricity");
         print("[", "2", "] ", "Water");
         print("[", "3", "] ", "WiFi");
@@ -147,12 +160,12 @@ public class TransactionManager {
             double billAmount = generateRandomAmount(user);
             double fee = billAmount * feePercentage;
 
-            System.out.println("Reference Code: " + referenceCode);
+            System.out.println("\nReference Code: " + referenceCode);
             System.out.println("Bill Amount: " + formatAmount(billAmount));
             System.out.println("Transaction Fee: " + formatAmount(fee));
             System.out.println("Total Amount to Pay: " + formatAmount(billAmount + fee));
 
-            System.out.print("Do you want to proceed with the payment? [Y/N]: ");
+            System.out.print("\nDo you want to proceed with the payment? [Y/N]: ");
             String confirmation = scanner.next();
 
             if (confirmation.equalsIgnoreCase("y")) {
@@ -162,10 +175,10 @@ public class TransactionManager {
                 Transaction billPaymentTransaction = new Transaction("BILL PAYMENT", totalAmountToPay, user.getUsername());
                 transactions.add(billPaymentTransaction);
 
-                printSuccess("Bill payment successful.");
+                printSuccess("\nBill payment successful.");
                 System.out.println("Remaining balance: " + formatAmount(user.getBalance()));
             } else {
-                printError("Bill payment canceled.");
+                printError("\nBill payment canceled.");
             }
         } else {
             printError("Invalid bill type option.");
@@ -183,36 +196,53 @@ public class TransactionManager {
                 if (!hasTransactions) {
                     printHeader("Transaction History for @" + user.getUsername());
                     hasTransactions = true;
+                    System.out.println("\n==================================================================================");
+                    System.out.print("|  ");
+                    System.out.print(colorize("Transaction ID", TEXT_COLOR(40)));
+                    System.out.print("  |       ");
+                    System.out.print(colorize("Type", TEXT_COLOR(40)));
+                    System.out.print("       |    ");
+                    System.out.print(colorize("Amount", TEXT_COLOR(40)));
+                    System.out.print("   |            ");
+                    System.out.print(colorize("Date", TEXT_COLOR(40)));
+                    System.out.print(" \t\t |");
+                    System.out.println("\n==================================================================================");
                 }
-                printTransactionDetails(transaction);
+                printTransactionDetail(transaction);
             }
         }
 
         if (!hasTransactions) {
-            printWarning("No transactions for " + user.getUsername() + " yet.");
-            System.out.println();
+            printWarning("No transactions for @" + user.getUsername() + " yet.\n");
         }
     }
 
-    public void printTransactionDetails(Transaction transaction) {
-        printDetails("Transaction ID: ", transaction.getTransactionId());
-        printDetails("Type: ", transaction.getType());
-        printDetails("Amount: ", String.valueOf(formatAmount(transaction.getAmount())));
-        printDetails("Date: ", transaction.getDate());
+    public void printUserDetails(User user) {
+        printDetails("Username:\t\t", user.getUsername());
+        printDetails("Name:\t\t\t", user.getName());
+        printDetails("Email:\t\t\t", user.getEmailAddress());
+        printDetails("Phone Number:\t\t", user.getPhoneNumber());
+        printDetails("Age:\t\t\t", String.valueOf(user.getAge()));
+        printDetails("Balance:\t\t", String.valueOf(formatAmount(user.getBalance())));
+        printDetails("Account Number:\t\t", String.valueOf(user.getAccountNumber()));
+        printDetails("Creation Date:\t\t", user.getCreationDate());
         System.out.println();
     }
 
-    public void printUserDetails(User user) {
-        printHeader("ACCOUNT DETAILS");
-        printDetails("Username: ", user.getUsername());
-        printDetails("Name: ", user.getName());
-        printDetails("Email: ", user.getEmailAddress());
-        printDetails("Phone Number: ", user.getPhoneNumber());
-        printDetails("Age: ", String.valueOf(user.getAge()));
-        printDetails("Balance: ", String.valueOf(formatAmount(user.getBalance())));
-        printDetails("Account Number: ", String.valueOf(user.getAccountNumber()));
-        printDetails("Creation Date: ", user.getCreationDate());
-        System.out.println();
+    public void aboutUs() {
+        cls();
+        printHeader(colorize("Group No. 2", TEXT_COLOR(40)));
+        System.out.println(colorize("\nMembers:", TEXT_COLOR(40)));
+        System.out.println(colorize("\tClemente, Daniel Francis", TEXT_COLOR(165)));
+        System.out.println(colorize("\tDe Jesus, Novie Anne", TEXT_COLOR(165)));
+        System.out.println(colorize("\tGalicio, Alexis Joy B.", TEXT_COLOR(165)));
+        System.out.println(colorize("\tGonzales, Jew-Alec Zandrea", TEXT_COLOR(165)));
+        System.out.println(colorize("\tPangan, Daniel", TEXT_COLOR(165)));
+        System.out.println(colorize("\nInfo:", TEXT_COLOR(40)));
+        System.out.println("\t\tproject description. project description. project description.");
+        System.out.println("\tproject description. project description. project description.");
+        System.out.println("\tproject description. project description. project description.");
+        pause();
     }
 
     private double generateRandomAmount(User user) {
@@ -221,7 +251,7 @@ public class TransactionManager {
         return balance * percentage;
     }
 
-    private double formatAmount(double amount) {
+    public double formatAmount(double amount) {
         DecimalFormat decimalFormat = new DecimalFormat("#.##");
         return Double.parseDouble(decimalFormat.format(amount));
     }

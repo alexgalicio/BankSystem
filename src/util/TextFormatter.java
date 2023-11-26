@@ -7,6 +7,7 @@ import com.diogonunes.jcolor.Attribute;
 
 import static com.diogonunes.jcolor.Ansi.colorize;
 import static com.diogonunes.jcolor.Attribute.*;
+import static util.Interface.printTitle;
 
 public class TextFormatter {
 
@@ -42,25 +43,39 @@ public class TextFormatter {
         System.out.println(colorize(header, BLUE_TEXT()));
     }
 
+    public static void invalidInput() {
+        Scanner scanner = new Scanner(System.in);
+        printError("Invalid input. Please try again.");
+        System.out.println("\nPress Enter key to continue...");
+        scanner.nextLine();
+    }
+
+    public static void pause() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("\nPress Enter key to continue...");
+        scanner.nextLine();
+    }
+
     public static String getUserChoice() {
         Scanner scanner = new Scanner(System.in);
 
-        System.out.print("Please enter your choice: ");
-        String choice;
+        System.out.print(colorize("\nPlease enter your choice: ", TEXT_COLOR(165)));
+        String choice = scanner.nextLine();
+        System.out.println();
 
-        try {
-            choice = scanner.nextLine();
-            System.out.println();
-        } catch (InputMismatchException e) {
-            printError("Invalid input. Please enter an integer.");
-            scanner.nextLine();
-
-            return getUserChoice();
-        }
+//        try {
+//            choice = scanner.nextLine();
+//            System.out.println();
+//        } catch (InputMismatchException e) {
+//            printError("Invalid input. Please enter an integer.");
+//            scanner.nextLine();
+//
+//            return getUserChoice();
+//        }
         return choice;
     }
 
-    public static double getUserAmount() {
+    public static double getUserAmount(String transactionType) {
         Scanner scanner = new Scanner(System.in);
 
         System.out.print("Amount: ");
@@ -70,10 +85,19 @@ public class TextFormatter {
             amount = scanner.nextInt();
             scanner.nextLine();
         } catch (InputMismatchException e) {
-            printError("Invalid input. Please enter an integer.");
+            printError("\nInvalid input. Please enter an integer.");
             scanner.nextLine();
+            pause();
 
-            return getUserAmount();
+            switch (transactionType) {
+                case "DEPOSIT" -> printTitle("                            Deposit                             ");
+                case "WITHDRAWAL" -> printTitle("                            Withdraw                            ");
+                case "TRANSFER" -> printTitle("                          Bank Transfer                         ");
+                case "EXCHANGE" -> printTitle("                        Exchange Currency                       ");
+                case "BILL PAYMENT" -> printTitle("                          Bill Payment                          ");
+            }
+
+            return getUserAmount(transactionType);
         }
         return amount;
     }

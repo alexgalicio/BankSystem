@@ -6,6 +6,7 @@ import java.util.*;
 
 import static com.diogonunes.jcolor.Ansi.colorize;
 import static com.diogonunes.jcolor.Attribute.*;
+import static util.Interface.*;
 import static util.TextFormatter.*;
 
 public class BankManagement {
@@ -27,7 +28,7 @@ public class BankManagement {
         menu();
     }
 
-    public void setDefaultUser() {
+    private void setDefaultUser() {
         User defaultUser = new User("user", "user");
         defaultUser.setName("Default User");
         defaultUser.setEmailAddress("default@example.com");
@@ -38,7 +39,7 @@ public class BankManagement {
 
         users.add(defaultUser);
 
-        User newUser = new User("alex", "alex");
+        User newUser = new User("alexis", "alexis");
         newUser.setName("Alex Galicio");
         newUser.setEmailAddress("alexisjoygalicio@gmail.com");
         defaultUser.setPhoneNumber("09975182932");
@@ -51,6 +52,8 @@ public class BankManagement {
 
     private void menu() {
         while (true) {
+            printTitle("                   Welcome to the Login Menu                    ");
+
             print("[", "1", "] ", "User");
             print("[", "2", "] ", "Admin");
             print("[", "3", "] ", "Exit");
@@ -64,23 +67,29 @@ public class BankManagement {
                     System.out.println(colorize("Thank You!", BOLD(), BACK_COLOR(214), BLACK_TEXT()));
                     System.exit(0);
                 }
-                default -> printError("Invalid choice. Please try again.");
+                default -> {
+                    printError("Invalid input. Please try again.");
+                    pause();
+                }
             }
         }
     }
 
     private void loginUser() {
+        printTitle("                          User Login                            ");
+
         print("[", "1", "] ", "Login");
         print("[", "2", "] ", "Signup");
         print("[", "3", "] ", "Back");
 
         String choice = getUserChoice();
 
+
         switch (choice) {
             case "1" -> {
                 int loginAttempts = 3;
                 while (loginAttempts > 0) {
-                    System.out.println("Please enter you login details");
+                    printTitle("                          User Login                            ");
                     System.out.print("Username: ");
                     String username = scanner.nextLine();
 
@@ -92,11 +101,13 @@ public class BankManagement {
                     if (user == null) {
                         loginAttempts--;
                         if (loginAttempts > 0) {
-                            printWarning("Incorrect username or password. " + (loginAttempts > 1 ? loginAttempts +
+                            printWarning("\nIncorrect username or password. " + (loginAttempts > 1 ? loginAttempts +
                                     " attempts remaining." : "1 attempt remaining."));
+                            pause();
                         }
                     } else if (user.getAccountStatus() == AccountStatus.FROZEN) {
-                        printError("Account is frozen. Unable to login.");
+                        printError("\nAccount is frozen. Unable to login.");
+                        pause();
                         return;
                     } else {
                         verifyLoginDetails();
@@ -104,33 +115,40 @@ public class BankManagement {
                         return;
                     }
                 }
-                printError("Maximum login attempts reached. Exiting program.");
+                printError("\nMaximum login attempts reached. Exiting program.");
                 System.exit(0);
             }
-            case "2" -> admin.create(users);
-            case "3" -> {
-                return;
+            case "2" -> {
+                admin.create(users);
+                pause();
             }
-            default -> printError("Invalid choice. Please try again.");
+            case "3" -> {
+            }
+            default -> {
+                printError("\nInvalid input. Please try again.");
+                pause();
+            }
         }
     }
 
     private void userMenu(User user) {
-        System.out.println(colorize("\nWelcome back, " + user.getName() + "! ", TEXT_COLOR(93)));
-
         while (true) {
+            userTitleText("                          User Menu                           ", user.getUsername(),
+                    "                          [", "]                              ");
             transactionMenu();
             String choice = getUserChoice();
 
             switch (choice) {
                 case "1" -> {
                     transactionManager.deposit(user);
+                    pause();
                 }
                 case "2" -> {
                     transactionManager.withdraw(user);
+                    pause();
                 }
                 case "3" -> {
-                    printHeader("BANK TRANSFER");
+                    printTitle("                          Bank Transfer                         ");
                     System.out.print("Receiver: ");
                     String receiverUsername = scanner.next();
 
@@ -138,34 +156,45 @@ public class BankManagement {
                     if (receiver != null) {
                         transactionManager.transfer(user, receiver);
                     } else {
-                        printError("Receiver not found.");
+                        printError("\nReceiver not found.");
                     }
+                    pause();
                 }
                 case "4" -> {
                     transactionManager.exchangeCurrency(user);
+                    pause();
                 }
                 case "5" -> {
                     transactionManager.payBills(user);
+                    pause();
                 }
                 case "6" -> {
+                    printTitle("                         Account Details                        ");
                     transactionManager.printUserDetails(user);
                     transactionManager.printTransactionHistory(user);
+                    pause();
                 }
                 case "7" -> {
-                    aboutUs();
+                    transactionManager.aboutUs();
                 }
                 case "8" -> {
                     return;
                 }
-                default -> printError("Invalid choice. Please try again.");
+                default -> {
+                    printError("Invalid input. Please try again.");
+                    pause();
+                }
             }
         }
     }
 
     private void loginAdmin() {
+        printTitle("                          Admin Login                           ");
+
         int loginAttempts = 3;
 
         while (true) {
+            printTitle("                          Admin Login                           ");
             System.out.print("Username: ");
             String adminUsername = scanner.nextLine();
 
@@ -182,6 +211,7 @@ public class BankManagement {
                 if (loginAttempts > 0) {
                     printWarning("Incorrect username or password. " + (loginAttempts > 1 ? loginAttempts +
                             " attempts remaining." : "1 attempt remaining."));
+                    pause();
                 } else {
                     printError("Maximum login attempts reached. Exiting program.");
                     System.exit(0);
@@ -191,9 +221,10 @@ public class BankManagement {
     }
 
     private void adminMenu() {
-        System.out.println(colorize("\nWelcome back, Admin!", TEXT_COLOR(93)));
-
         while (true) {
+            userTitleText("                          Admin Menu                          ", "Admin",
+                    "                           [", "]                             ");
+
             System.out.println();
             print("[", "1", "] ", "Account Management");
             print("[", "2", "] ", "Transaction");
@@ -204,27 +235,25 @@ public class BankManagement {
             String choice = getUserChoice();
 
             switch (choice) {
-                case "1" -> admin.accountManagement(users);
-                case "2" -> admin.performTransaction(users);
-                case "3" -> admin.accountStatement(users);
+                case "1" -> {
+                    admin.accountManagement(users);
+                }
+                case "2" -> {
+                    admin.performTransaction(users);
+                }
+                case "3" -> {
+                    admin.accountStatement(users);
+                }
                 case "4" -> admin.accountStatus(users);
                 case "5" -> {
                     return;
                 }
-                default -> printError("Invalid choice. Please try again.");
+                default -> {
+                    printError("Invalid input. Please try again.");
+                    pause();
+                }
             }
         }
-    }
-
-    private void aboutUs() {
-        System.out.println("Group No. 2");
-        System.out.println("Clemente, Daniel Francis");
-        System.out.println("De Jesus, Novie Anne");
-        System.out.println("Galicio, Alexis Joy B.");
-        System.out.println("Gonzales, Jew-Alec Zandrea");
-        System.out.println("Pangan, Daniel");
-        System.out.println("Info:");
-        System.out.println("some info about the project.");
     }
 
     private boolean isAdminAuthenticated(String username, String password) {
@@ -232,14 +261,14 @@ public class BankManagement {
     }
 
     private void verifyLoginDetails() {
-        System.out.println("Verifying your login details, please wait...");
+        System.out.println("\nVerifying your login details, please wait...");
         try {
-            Thread.sleep(1500);
+            Thread.sleep(500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        printSuccess("Login successful!");
-        scanner.nextLine();
+        printSuccess("\nLogin successful!");
+        pause();
     }
 
     private User findUser(String username, String password) {

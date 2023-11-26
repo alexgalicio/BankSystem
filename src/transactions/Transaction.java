@@ -41,8 +41,35 @@ public class Transaction {
     }
 
     private String getCurrentTimestamp() {
-        SimpleDateFormat sdf = new SimpleDateFormat("E MMM dd HH:mm:ss z yyyy");
-        return sdf.format(new Date());
+        SimpleDateFormat sdf = new SimpleDateFormat("d MMM yyyy HH:mm:ss");
+        String dateString = sdf.format(new Date());
+
+        dateString = addOrdinalSuffix(dateString);
+
+        return dateString;
+    }
+
+    private String addOrdinalSuffix(String dateString) {
+        String[] parts = dateString.split(" ");
+        String day = parts[0];
+
+        int dayValue = Integer.parseInt(day);
+        String suffix;
+
+        if (dayValue >= 11 && dayValue <= 13) {
+            suffix = "th";
+        } else {
+            suffix = switch (dayValue % 10) {
+                case 1 -> "st";
+                case 2 -> "nd";
+                case 3 -> "rd";
+                default -> "th";
+            };
+        }
+
+        parts[0] = day + suffix;
+
+        return String.join(" ", parts);
     }
 
     public String getTransactionId() {

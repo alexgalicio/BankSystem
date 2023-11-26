@@ -4,6 +4,7 @@ import transactions.TransactionManager;
 
 import java.util.*;
 
+import static util.Interface.printTitle;
 import static util.TextFormatter.*;
 import static util.TextFormatter.print;
 
@@ -17,8 +18,7 @@ public class Admin {
     }
 
     public void create(List<User> userList) {
-        System.out.println("Please add your personal information to create an account.");
-
+        printTitle("                       Create New Account                       ");
         System.out.print("Full Name: ");
         String name = scanner.nextLine();
 
@@ -34,7 +34,7 @@ public class Admin {
         int age = currentYear - birthYear;
 
         if (age < 18) {
-            printError("You must be 18 years old or older to create an account.");
+            printError("\nYou must be 18 years old or older to create an account.");
             return;
         }
 
@@ -44,12 +44,12 @@ public class Admin {
             System.out.print("Username: ");
             username = scanner.nextLine();
             if (username.length() > 6) {
-                printError("Username must be 6 characters or fewer. Please try again.");
+                printError("\nUsername must be 6 characters or fewer. Please try again.");
                 isUsernameTaken = true;
             } else {
                 isUsernameTaken = findUserByUsername(userList, username) != null;
                 if (isUsernameTaken) {
-                    printError("Username already exists. Please choose a different username.");
+                    printError("\nUsername already exists. Please choose a different username.");
                 }
             }
         } while (username.length() > 6 || isUsernameTaken);
@@ -60,7 +60,7 @@ public class Admin {
             System.out.print("Password: ");
             password = scanner.nextLine();
             if (password.length() > 6) {
-                printError("Password must be 6 characters or fewer. Please try again.");
+                printError("\nPassword must be 6 characters or fewer. Please try again.");
             }
         } while (password.length() > 6);
 
@@ -72,12 +72,10 @@ public class Admin {
 
         userList.add(newUser);
 
-        printSuccess("Account has been successfully created!");
-        scanner.nextLine();
+        printSuccess("\nAccount has been successfully created!");
     }
 
     private void search(List<User> userList) {
-        printHeader("SEARCH ACCOUNT");
         System.out.print("Search: ");
         String keyword = scanner.nextLine();
 
@@ -91,30 +89,23 @@ public class Admin {
         }
 
         if (searchResults.isEmpty()) {
-            printError("No matching users found.");
+            printError("\nNo matching users found.");
         } else {
-            printHeader("\nMatching Users");
+            printHeader("\nMatching Users\n");
             for (User user : searchResults) {
-                printDetails("Name: ", user.getName());
-                printDetails("Email Address: ", user.getEmailAddress());
-                printDetails("Phone Number: ", user.getPhoneNumber());
-                printDetails("Age: ", String.valueOf(user.getAge()));
-                printDetails("Username: ", user.getUsername());
-                printDetails("Date of Creation: ", user.getCreationDate());
-                System.out.println();
+                transactionManager.printUserDetails(user);
             }
         }
     }
 
     private void edit(List<User> userList) {
-        printHeader("EDIT ACCOUNT");
         System.out.print("Username: ");
         String username = scanner.nextLine();
 
         User user = findUserByUsername(userList, username);
 
         if (user != null) {
-            System.out.print("Name: ");
+            System.out.print("\nName: ");
             String name = scanner.nextLine();
             user.setName(name);
 
@@ -131,35 +122,35 @@ public class Admin {
             user.setAge(age);
             scanner.nextLine();
 
-            printSuccess("Account updated successfully.");
+            printSuccess("\nAccount updated successfully.");
         } else {
-            printError("User not found.");
+            printError("\nUser not found.");
         }
     }
 
     private void delete(List<User> userList) {
-        printHeader("DELETE ACCOUNT");
         System.out.print("Username: ");
         String username = scanner.next();
 
         User user = findUserByUsername(userList, username);
 
         if (user != null) {
-            System.out.print("Are you sure you want to delete @" + user.getUsername() + "? [Y/N]: ");
+            System.out.print("\nAre you sure you want to delete @" + user.getUsername() + "? [Y/N]: ");
             String confirmation = scanner.next();
 
             if (confirmation.equalsIgnoreCase("Y")) {
                 userList.remove(user);
-                printSuccess("User @" + user.getUsername() + " is successfully deleted.");
+                printSuccess("\nUser @" + user.getUsername() + " is successfully deleted.");
             } else {
-                printError("User deletion canceled.");
+                printError("\nUser deletion canceled.");
             }
         } else {
-            printError("User not found.");
+            printError("\nUser not found.");
         }
     }
 
     public void accountManagement(List<User> userList) {
+        printTitle("                       Account Management                       ");
         print("[", "1", "] ", "Create New Account");
         print("[", "2", "] ", "Search Account");
         print("[", "3", "] ", "Edit Account");
@@ -169,14 +160,31 @@ public class Admin {
         String choice = getUserChoice();
 
         switch (choice) {
-            case "1" -> create(userList);
-            case "2" -> search(userList);
-            case "3" -> edit(userList);
-            case "4" -> delete(userList);
-            case "5" -> {
-                return;
+            case "1" -> {
+                create(userList);
+                pause();
             }
-            default -> printError("Invalid choice. Please try again.");
+            case "2" -> {
+                printTitle("                         Search Account                         ");
+                search(userList);
+                pause();
+            }
+            case "3" -> {
+                printTitle("                          Edit Account                          ");
+                edit(userList);
+                pause();
+            }
+            case "4" -> {
+                printTitle("                         Delete Account                         ");
+                delete(userList);
+                pause();
+            }
+            case "5" -> {
+            }
+            default -> {
+                printError("Invalid input. Please try again.");
+                pause();
+            }
         }
     }
 
@@ -189,7 +197,7 @@ public class Admin {
         if (user != null) {
             transactionManager.printTransactionHistory(user);
         } else {
-            printError("User not found.");
+            printError("\nUser not found.");
         }
     }
 
@@ -200,20 +208,30 @@ public class Admin {
     }
 
     public void accountStatement(List<User> userList) {
+        printTitle("                       Account Statement                        ");
         print("[", "1", "] ", "Generate Statement");
         print("[", "2", "] ", "View All Statements");
         print("[", "3", "] ", "Back");
 
         String choice = getUserChoice();
 
-        printHeader("ACCOUNT STATEMENT");
         switch (choice) {
-            case "1" -> generateStatement(userList);
-            case "2" -> viewAllStatements(userList);
-            case "3" -> {
-                return;
+            case "1" -> {
+                printTitle("                       Generate Statement                       ");
+                generateStatement(userList);
+                pause();
             }
-            default -> printError("Invalid choice. Please try again.");
+            case "2" -> {
+                printTitle("                       View All Statement                       ");
+                viewAllStatements(userList);
+                pause();
+            }
+            case "3" -> {
+            }
+            default -> {
+                printError("Invalid choice. Please try again.");
+                pause();
+            }
         }
     }
 
@@ -225,13 +243,13 @@ public class Admin {
 
         if (user != null) {
             if (user.getAccountStatus() == AccountStatus.FROZEN) {
-                printWarning("Account is already frozen.");
+                printWarning("\nAccount is already frozen.");
             } else {
                 user.setAccountStatus(AccountStatus.FROZEN);
-                printSuccess("The account for user @" + user.getUsername() + " has been successfully frozen.");
+                printSuccess("\nThe account for user @" + user.getUsername() + " has been successfully frozen.");
             }
         } else {
-            printError("User not found.");
+            printError("\nUser not found.");
         }
     }
 
@@ -243,17 +261,19 @@ public class Admin {
 
         if (user != null) {
             if (user.getAccountStatus() == AccountStatus.ACTIVE) {
-                printWarning("Account is already active.");
+                printWarning("\nAccount is already active.");
             } else {
                 user.setAccountStatus(AccountStatus.ACTIVE);
-                printSuccess("The account for user @" + user.getUsername() + " has been successfully reactivated.");
+                printSuccess("\nThe account for user @" + user.getUsername() + " has been successfully reactivated.");
             }
         } else {
-            printError("User not found.");
+            printError("\nUser not found.");
         }
     }
 
     public void accountStatus(List<User> userList) {
+        printTitle("                         Account Status                         ");
+
         print("[", "1", "] ", "Freeze/Deactivate Account");
         print("[", "2", "] ", "Reactivate Account");
         print("[", "3", "] ", "Back");
@@ -262,16 +282,26 @@ public class Admin {
 
         printHeader("ACCOUNT STATUS");
         switch (choice) {
-            case "1" -> freezeAccount(userList);
-            case "2" -> reactivateAccount(userList);
-            case "3" -> {
-                return;
+            case "1" -> {
+                printTitle("                         Freeze Account                         ");
+                freezeAccount(userList);
             }
-            default -> printError("Invalid choice. Please try again.");
+            case "2" -> {
+                printTitle("                       Reactivate Account                       ");
+                reactivateAccount(userList);
+            }
+            case "3" -> {
+            }
+            default -> {
+                printError("Invalid choice. Please try again.");
+            }
         }
+        pause();
     }
 
     public void performTransaction(List<User> userList) {
+        printTitle("                         Transactions                         ");
+
         System.out.print("Username: ");
         String username = scanner.next();
 
@@ -279,17 +309,22 @@ public class Admin {
 
         if (user != null) {
             if (user.getAccountStatus() == AccountStatus.FROZEN) {
-                printError("Account is frozen. Unable to perform transactions.");
+                printError("\nAccount is frozen. Unable to perform transactions.");
             } else {
                 transactionMenu();
 
                 String choice = getUserChoice();
 
                 switch (choice) {
-                    case "1" -> transactionManager.deposit(user);
-                    case "2" -> transactionManager.withdraw(user);
+                    case "1" -> {
+                        transactionManager.deposit(user);
+                    }
+                    case "2" -> {
+                        transactionManager.withdraw(user);
+                        pause();
+                    }
                     case "3" -> {
-                        System.out.println("BANK TRANSFER");
+                        printTitle("                          Bank Transfer                         ");
                         System.out.print("Receiver: ");
                         String receiverUsername = scanner.next();
 
@@ -299,23 +334,37 @@ public class Admin {
                         } else {
                             printError("Receiver not found.");
                         }
+                        pause();
                     }
-                    case "4" -> transactionManager.exchangeCurrency(user);
-                    case "5" -> transactionManager.payBills(user);
+                    case "4" -> {
+                        transactionManager.exchangeCurrency(user);
+                        pause();
+                    }
+                    case "5" -> {
+                        transactionManager.payBills(user);
+                        pause();
+                    }
 
                     case "6" -> {
+                        printTitle("                         Account Details                        ");
                         transactionManager.printUserDetails(user);
                         transactionManager.printTransactionHistory(user);
+                        pause();
                     }
                     case "7" -> {
-                        return;
+                        transactionManager.aboutUs();
                     }
-                    default -> printError("Invalid choice. Please try again.");
+                    case "8" -> {
+                    }
+                    default -> {
+                        printError("Invalid choice. Please try again.");
+                    }
                 }
             }
         } else {
-            printError("User not found.");
+            printError("\nUser not found.");
         }
+        pause();
     }
 
     private int getValidBirthYear() {
