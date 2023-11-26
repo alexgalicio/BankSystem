@@ -4,8 +4,8 @@
 ## Login Information
 |   | admin | user1 | user2 |
 | ------------- | ------------- | ------------- | ------------- |
-| username  | admin  | user  | alex  |
-| password  | admin  | user  | alex  |
+| username  | admin  | user  | alexis  |
+| password  | admin  | user  | alexis  |
 
 ## Installation
 Download the library JAR file from the [release page](https://jar-download.com/artifacts/com.diogonunes/JColor/5.5.1) 
